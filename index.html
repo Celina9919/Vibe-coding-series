@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nutzer-Motivations-Analyse Canvas</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f7f6f2;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-border: rgba(0,0,0,0.12);
+    --color-border-hover: rgba(0,0,0,0.25);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: system-ui, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #1e1e1c;
+      --color-bg-secondary: #282825;
+      --color-text-primary: #f0efe8;
+      --color-text-secondary: #b4b2a9;
+      --color-text-tertiary: #888780;
+      --color-border: rgba(255,255,255,0.12);
+      --color-border-hover: rgba(255,255,255,0.25);
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+  }
+
+  header {
+    max-width: 960px;
+    margin: 0 auto 1.5rem;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  header p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+  }
+
+  .canvas-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .canvas-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .canvas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .canvas-grid-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .card {
+    background: var(--color-bg);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    transition: border-color 0.15s;
+  }
+
+  .card:hover { border-color: var(--color-border-hover); }
+
+  .card.highlight-center {
+    border: 1.5px solid #7F77DD;
+    background: var(--color-bg-secondary);
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-teal   { background: #1D9E75; }
+  .dot-purple { background: #7F77DD; }
+  .dot-coral  { background: #D85A30; }
+  .dot-amber  { background: #BA7517; }
+  .dot-blue   { background: #378ADD; }
+  .dot-pink   { background: #D4537E; }
+  .dot-green  { background: #639922; }
+  .dot-red    { background: #E24B4A; }
+
+  .label-teal   { color: #0F6E56; }
+  .label-purple { color: #534AB7; }
+  .label-coral  { color: #993C1D; }
+  .label-amber  { color: #854F0B; }
+  .label-blue   { color: #185FA5; }
+  .label-pink   { color: #993556; }
+  .label-green  { color: #3B6D11; }
+  .label-red    { color: #A32D2D; }
+
+  @media (prefers-color-scheme: dark) {
+    .label-teal   { color: #5DCAA5; }
+    .label-purple { color: #AFA9EC; }
+    .label-coral  { color: #F0997B; }
+    .label-amber  { color: #EF9F27; }
+    .label-blue   { color: #85B7EB; }
+    .label-pink   { color: #ED93B1; }
+    .label-green  { color: #97C459; }
+    .label-red    { color: #F09595; }
+  }
+
+  .card-question {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  .card-textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: var(--font);
+    color: var(--color-text-primary);
+    background: var(--color-bg-secondary);
+    line-height: 1.6;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .card-textarea:focus { border-color: var(--color-border-hover); }
+  .card-textarea::placeholder { color: var(--color-text-tertiary); font-style: italic; }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--color-border-hover);
+    background: transparent;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background 0.12s;
+  }
+
+  .btn:hover { background: var(--color-bg-secondary); }
+
+  .btn-primary {
+    background: #E6F1FB;
+    color: #185FA5;
+    border-color: transparent;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .btn-primary { background: #0C447C; color: #85B7EB; }
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .nudge {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-top: 10px;
+    min-height: 16px;
+  }
+
+  .export-section {
+    max-width: 960px;
+    margin: 1.5rem auto 0;
+    padding: 14px 16px;
+    background: var(--color-bg);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    display: none;
+  }
+
+  .export-section h3 {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--color-text-secondary);
+  }
+
+  .export-section pre {
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--color-text-primary);
+    background: var(--color-bg-secondary);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .canvas-grid { grid-template-columns: 1fr; }
+    .canvas-grid-bottom { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nutzer-Motivations-Analyse Canvas</h1>
+  <p>Analysiere die Motivationen, Ziele und Barrieren deiner Nutzer strukturiert in einem Canvas.</p>
+</header>
+
+<div class="canvas-wrapper">
+  <div class="canvas-title">Canvas — Felder ausfüllen</div>
+
+  <div class="canvas-grid">
+    <div class="card">
+      <div class="card-label"><span class="dot dot-teal"></span><span class="label-teal">Ziele &amp; Wünsche</span></div>
+      <div class="card-question">Was möchte der Nutzer erreichen?</div>
+      <textarea class="card-textarea" placeholder="z.B. schnelle Erledigung, Sicherheit, Anerkennung…" id="ziele"></textarea>
+    </div>
+
+    <div class="card highlight-center">
+      <div class="card-label" style="justify-content: center;"><span class="dot dot-purple"></span><span class="label-purple">Nutzerprofil</span></div>
+      <div class="card-question" style="text-align:center;">Wer ist der Nutzer?</div>
+      <textarea class="card-textarea" placeholder="Name, Alter, Rolle, Kontext…" id="profil"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot dot-coral"></span><span class="label-coral">Schmerzen &amp; Frustrationen</span></div>
+      <div class="card-question">Was hindert oder frustriert ihn?</div>
+      <textarea class="card-textarea" placeholder="z.B. Zeitdruck, Komplexität, Unsicherheit…" id="schmerzen"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot dot-amber"></span><span class="label-amber">Intrinsische Motivation</span></div>
+      <div class="card-question">Was treibt von innen heraus an?</div>
+      <textarea class="card-textarea" placeholder="z.B. Neugier, Autonomie, Wachstum…" id="intrinsisch"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot dot-blue"></span><span class="label-blue">Extrinsische Motivation</span></div>
+      <div class="card-question">Welche äußeren Anreize gibt es?</div>
+      <textarea class="card-textarea" placeholder="z.B. Belohnung, Status, soziale Anerkennung…" id="extrinsisch"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot dot-pink"></span><span class="label-pink">Emotionaler Kontext</span></div>
+      <div class="card-question">Wie fühlt er sich dabei?</div>
+      <textarea class="card-textarea" placeholder="z.B. gestresst, neugierig, überfordert, begeistert…" id="emotionen"></textarea>
+    </div>
+  </div>
+
+  <div class="canvas-grid-bottom">
+    <div class="card">
+      <div class="card-label"><span class="dot dot-green"></span><span class="label-green">Chancen &amp; Möglichkeiten</span></div>
+      <div class="card-question">Wie kann man diese Motivationen nutzen?</div>
+      <textarea class="card-textarea" placeholder="z.B. Feature-Ideen, UX-Verbesserungen, Gamification…" id="chancen"></textarea>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="dot dot-red"></span><span class="label-red">Risiken &amp; Barrieren</span></div>
+      <div class="card-question">Was könnte die Motivation bremsen?</div>
+      <textarea class="card-textarea" placeholder="z.B. mangelndes Vertrauen, technische Hürden, Kosten…" id="risiken"></textarea>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="exportCanvas()">Canvas exportieren</button>
+    <button class="btn" onclick="clearAll()">Leeren</button>
+    <button class="btn" onclick="loadExample()">Beispiel laden</button>
+  </div>
+  <div class="nudge" id="nudge"></div>
+</div>
+
+<div class="export-section" id="exportSection">
+  <h3>Canvas-Zusammenfassung</h3>
+  <pre id="exportText"></pre>
+</div>
+
+<script>
+function getValues() {
+  return {
+    profil: document.getElementById('profil').value,
+    ziele: document.getElementById('ziele').value,
+    schmerzen: document.getElementById('schmerzen').value,
+    intrinsisch: document.getElementById('intrinsisch').value,
+    extrinsisch: document.getElementById('extrinsisch').value,
+    emotionen: document.getElementById('emotionen').value,
+    chancen: document.getElementById('chancen').value,
+    risiken: document.getElementById('risiken').value,
+  };
+}
+
+function exportCanvas() {
+  const v = getValues();
+  const filled = Object.values(v).filter(x => x.trim().length > 0);
+  if (filled.length < 1) {
+    document.getElementById('nudge').textContent = 'Bitte fülle mindestens ein Feld aus.';
+    return;
+  }
+  document.getElementById('nudge').textContent = '';
+  const text = [
+    '=== NUTZER-MOTIVATIONS-ANALYSE CANVAS ===',
+    '',
+    'NUTZERPROFIL',
+    v.profil || '(nicht ausgefüllt)',
+    '',
+    'ZIELE & WÜNSCHE',
+    v.ziele || '(nicht ausgefüllt)',
+    '',
+    'SCHMERZEN & FRUSTRATIONEN',
+    v.schmerzen || '(nicht ausgefüllt)',
+    '',
+    'INTRINSISCHE MOTIVATION',
+    v.intrinsisch || '(nicht ausgefüllt)',
+    '',
+    'EXTRINSISCHE MOTIVATION',
+    v.extrinsisch || '(nicht ausgefüllt)',
+    '',
+    'EMOTIONALER KONTEXT',
+    v.emotionen || '(nicht ausgefüllt)',
+    '',
+    'CHANCEN & MÖGLICHKEITEN',
+    v.chancen || '(nicht ausgefüllt)',
+    '',
+    'RISIKEN & BARRIEREN',
+    v.risiken || '(nicht ausgefüllt)',
+  ].join('\n');
+
+  const sec = document.getElementById('exportSection');
+  document.getElementById('exportText').textContent = text;
+  sec.style.display = 'block';
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearAll() {
+  ['profil','ziele','schmerzen','intrinsisch','extrinsisch','emotionen','chancen','risiken'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('nudge').textContent = '';
+  document.getElementById('exportSection').style.display = 'none';
+}
+
+function loadExample() {
+  document.getElementById('profil').value = 'Anna, 32, Produktmanagerin, nutzt täglich 5+ Tools';
+  document.getElementById('ziele').value = 'Aufgaben schnell erledigen, Team koordinieren, Überblick behalten';
+  document.getElementById('schmerzen').value = 'Zu viele Apps, Informationen verstreut, kein klarer Workflow';
+  document.getElementById('intrinsisch').value = 'Effizienzstreben, Verantwortungsgefühl, Qualitätsbewusstsein';
+  document.getElementById('extrinsisch').value = 'Lob vom Team, KPI-Erreichung, Karrierefortschritt';
+  document.getElementById('emotionen').value = 'Oft gestresst morgens, motiviert bei sichtbarem Fortschritt';
+  document.getElementById('chancen').value = 'All-in-one Dashboard, smarte Benachrichtigungen, visuelle Fortschrittsanzeigen';
+  document.getElementById('risiken').value = 'Adoption-Hürde bei neuem Tool, Datenschutzbedenken, Lernaufwand';
+  document.getElementById('nudge').textContent = 'Beispiel geladen – passe die Felder an deinen Nutzer an.';
+}
+</script>
+
+</body>
+</html>
